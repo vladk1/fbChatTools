@@ -1,0 +1,13 @@
+src/files/similarity/jsons/*
+src/files/similarity/text/*
+src/files/datef/jsons/*
+src/files/datef/texts/*
+src/files/fbMessages/*
+src/files/tags/*
+src/files/tfidf/jsons/*
+src/files/tfidf/texts/*
+src/files/similarity/texts/*
+!/src/files/fbmessages/
+
+flask/*
+venv/*

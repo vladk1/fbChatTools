@@ -1,0 +1,297 @@
+<meta charset="utf-8">
+     <style>
+      /* disable text selection */
+      svg *::selection {
+         background : transparent;
+      }
+     
+      svg *::-moz-selection {
+         background:transparent;
+      } 
+     
+      svg *::-webkit-selection {
+         background:transparent;
+      }
+      rect.selection {
+        stroke          : #333;
+        stroke-dasharray: 4px;
+        stroke-opacity  : 0.5;
+        fill            : transparent;
+      }
+
+      rect.cell-border {
+        stroke: #eee;
+        stroke-width:0.3px;   
+      }
+
+      rect.cell-selected {
+        stroke: rgb(51,102,153);
+        stroke-width:0.5px;   
+      }
+
+      rect.cell-hover {
+        stroke: #F00;
+        stroke-width:0.3px;   
+      }
+
+      text.mono {
+        font-size: 9pt;
+        font-family: Consolas, courier;
+        fill: #aaa;
+      }
+
+      text.text-selected {
+        fill: #000;
+      }
+
+      text.text-highlight {
+        fill: #c00;
+      }
+      text.text-hover {
+        fill: #00C;
+      }
+      #tooltip {
+        position: absolute;
+        width: 200px;
+        height: auto;
+        padding: 10px;
+        background-color: white;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+      }
+
+      #tooltip.hidden {
+        display: none;
+      }
+
+      #tooltip p {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 12px;
+        line-height: 20px;
+      }
+    </style>
+
+</head>
+<div id="tooltip" class="hidden">
+        <p><span id="value"></p>
+</div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<div id="chart" style='overflow:auto; width:100%;'></div>
+
+<script type="text/javascript">
+var margin = { top: 150, right: 10, bottom: 50, left: 100 },
+  cellSize=15,
+  legendElementWidth = cellSize*5.5,
+  colorBuckets = 21,
+  colors = ['#005824','#1A693B','#347B53','#4F8D6B','#699F83','#83B09B','#9EC2B3','#B8D4CB','#D2E6E3','#EDF8FB','#FFFFFF','#F1EEF6','#E6D3E1','#DBB9CD','#D19EB9','#C684A4','#BB6990','#B14F7C','#A63467','#9B1A53','#91003F'];
+
+  var col_number, row_number, width, height, gridSize;
+
+  var hcrow = new Array();
+  var hccol = new Array();
+
+
+  var rowLabel = new Array();
+  var colLabel = new Array();
+
+  var ratioArray = new Array();
+  var rowIndexArray = new Array();
+  var collumnIndexArray = new Array();
+  var data = new Array();
+
+  var svg;
+
+d3.json("http://127.0.0.1:5000/src/files/similarity/jsons/similatity.json", function(d) {
+  // console.log(d);
+  var rowCounter = 0;
+  var columnCounter = 0;
+  var matrixUnitCounter = 0;
+
+  var nodes = d.nodes;
+  col_number=nodes[0].ratioArray.length;
+  row_number=nodes[0].ratioArray.length;
+  
+  width = cellSize*col_number; 
+  height = cellSize*row_number; 
+  gridSize = Math.floor(width / nodes[0].ratioArray.length);
+
+  console.log("col_number="+col_number+" row_number="+row_number+" width="+width+" height="+height+" gridSize="+gridSize);
+
+  nodes.forEach(function(node, i) {
+
+      var newName = simplifyName(node.name, nodes, i);
+      rowLabel.push(newName);
+      colLabel.push(newName);  
+      
+
+      node.ratioArray.forEach(function(ratio, collumn) {
+
+        data.push( {
+            row: rowCounter,
+            col: collumn,
+            value: parseFloat(ratio)*100
+          }
+        ); 
+
+        hcrow.push(matrixUnitCounter);
+        hccol.push(matrixUnitCounter);
+        matrixUnitCounter++;
+       
+      });
+
+      rowCounter++;
+
+  });
+
+  
+  svg = d3.select("#chart").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  updateMatrix(data);
+
+})
+
+
+
+function simplifyName(curName, nodes, i) {
+  var otherName = "";
+  if (nodes.length > i+1) {
+    otherName = nodes[i+1].name;
+  } else {
+    otherName = nodes[i-1].name;
+  }
+  curName = curName.replace("Tfidf.json", "");
+  otherName = otherName.replace("Tfidf.json", "");
+
+  var nameArray = getNameArray(curName);
+  nameArray = nameArray.concat(getNameArray(otherName));
+
+  while (nameArray.length>0) {
+     var name = nameArray.pop(i);
+     var surname = nameArray.pop(i+1);
+     if ((nameArray.indexOf(name)!=-1) && (nameArray.indexOf(surname)!=-1) ) {
+       curName = curName.replace(name, "");
+       curName = curName.replace(surname, "");
+     }
+  }
+
+  return curName;
+}
+
+function getNameArray(fileName) {
+  var namesArray = new Array();
+  var genName = "";
+  for (var i=0; i<fileName.length; i++) {
+   
+    if ((fileName.charAt(i) === fileName.charAt(i).toUpperCase()) && (i!==0)) {
+      namesArray.push(genName);
+      genName="";
+    }
+
+    genName += fileName.charAt(i);
+  }
+  namesArray.push(genName);
+  return namesArray;
+}
+
+function isEven(n) {
+  return n == parseFloat(n)? !(n%2) : void 0;
+}
+
+
+
+function updateMatrix(data) {
+
+  // conosle.log("hhheyeyeyeyey");
+  console.log("data.length="+data.length);
+
+  var colorScale = d3.scale.quantile()
+      .domain([-10 , 0, 10])
+      .range(colors);
+ 
+  var rowSortOrder=false;
+  var colSortOrder=false;
+
+  var rowLabels = svg.append("g")
+      .selectAll(".rowLabelg")
+      .data(rowLabel)
+      .enter()
+      .append("text")
+      .text(function (d) { return d; })
+      .attr("x", 0)
+      .attr("y", function (d, i) { return hcrow.indexOf(i+1) * cellSize; })
+      .style("text-anchor", "end")
+      .attr("transform", "translate(-6," + cellSize / 1.5 + ")")
+      .attr("class", function (d,i) { return "rowLabel mono r"+i;} ) 
+      .on("mouseover", function(d) {d3.select(this).classed("text-hover",true);})
+      .on("mouseout" , function(d) {d3.select(this).classed("text-hover",false);})
+      .on("click", function(d,i) {rowSortOrder=!rowSortOrder; sortbylabel("r",i,rowSortOrder);d3.select("#order").property("selectedIndex", 4).node().focus();;})
+      ;
+
+  var colLabels = svg.append("g")
+      .selectAll(".colLabelg")
+      .data(colLabel)
+      .enter()
+      .append("text")
+      .text(function (d) { return d; })
+      .attr("x", 0)
+      .attr("y", function (d, i) { return hccol.indexOf(i+1) * cellSize; })
+      .style("text-anchor", "left")
+      .attr("transform", "translate("+cellSize/2 + ",-6) rotate (-90)")
+      .attr("class",  function (d,i) { return "colLabel mono c"+i;} )
+      .on("mouseover", function(d) {d3.select(this).classed("text-hover",true);})
+      .on("mouseout" , function(d) {d3.select(this).classed("text-hover",false);})
+      .on("click", function(d,i) {colSortOrder=!colSortOrder;  sortbylabel("c",i,colSortOrder);d3.select("#order").property("selectedIndex", 4).node().focus();;})
+      ;
+
+
+var rowCounter = 0;
+var collumnCounter = 0;
+
+  var heatMap = svg.append("g").attr("class","g3")
+        .selectAll(".cellg")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("x", function(d) { 
+          return hcrow.indexOf(d.col)*cellSize; 
+        })
+        .attr("y", function(d) { 
+          return hcrow.indexOf(d.row)*cellSize; 
+        })
+        .attr("class", function(d){return "cell cell-border cr"+(d.row-1)+" cc"+(d.col-1);})
+        .attr("width", cellSize)
+        .attr("height", cellSize)
+        .style("fill", function(d) { return colorScale(d.value); })
+    
+        .on("mouseover", function(d){
+               d3.select(this).classed("cell-hover",true);
+               d3.selectAll(".rowLabel").classed("text-highlight",function(r,ri){ return ri==(d.row-1);});
+               d3.selectAll(".colLabel").classed("text-highlight",function(c,ci){ return ci==(d.col-1);});
+        
+               d3.select("#tooltip")
+                 .style("left", (d3.event.pageX+10) + "px")
+                 .style("top", (d3.event.pageY-10) + "px")
+                 .select("#value")
+                 .text("lables:"+rowLabel[d.row-1]+","+colLabel[d.col-1]+"\nsimilarity:"+d.value+"\ncol:"+d.col+" row:"+d.row);  
+               d3.select("#tooltip").classed("hidden", false);
+        })
+        .on("mouseout", function(){
+               d3.select(this).classed("cell-hover",false);
+               d3.selectAll(".rowLabel").classed("text-highlight",false);
+               d3.selectAll(".colLabel").classed("text-highlight",false);
+               d3.select("#tooltip").classed("hidden", true);
+        });
+
+  }
+
+</script>

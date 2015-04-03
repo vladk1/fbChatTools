@@ -1,0 +1,260 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/static/stylesheets/material_design.css">
+<link rel="stylesheet" type="text/css" href="/static/stylesheets/material_font.css">
+<link rel="stylesheet" type="text/css" href="/static/stylesheets/material_colour.css">
+
+
+
+<!-- Compiled and minified CSS -->
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/css/materialize.min.css">
+
+<!-- Compiled and minified JavaScript -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/js/materialize.min.js"></script>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/css/materialize.css"></link>
+
+<link href='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/font/roboto/Roboto-Light.ttf' rel='stylesheet' type='text/css'>
+
+ <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+  <link rel="stylesheet" href="static/stylesheets/cal-heatmap.css" />
+  <script type="text/javascript" src="static/js/cal-heatmap.min.js"></script>
+  <script type="text/javascript" src="static/js/moment.min.js"></script>
+
+
+
+    <script type="text/javascript">
+
+      var TOTAL_NUM_RESULTS = 50;
+
+      function getJsonFile() {
+        document.getElementById('results').innerHTML="";
+        console.log("getJsonFile");
+
+        var queryValue = document.getElementById('first_name').value;
+
+        var http = new XMLHttpRequest();
+        var url = "search_tags";
+        var params = "keyword="+queryValue;
+        http.open("POST", url, true);
+
+        //Send the proper header information along with the request
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        http.setRequestHeader("Content-length", params.length);
+        http.setRequestHeader("Connection", "close");
+
+        http.onreadystatechange = function() {//Call a function when the state changes.
+            if(http.readyState == 4 && http.status == 200) {
+
+                populateSearchResults(http.responseText);
+            }
+        }
+        http.send(params);
+    }
+
+    function populateSearchResults(jsonString) {
+      console.log("populateSearchResults");
+      var json = JSON.parse(jsonString);
+      var json_user_name = json["user_name"];
+
+      var json_other_people = json["other_people"];
+      var json_people_frequency = json["frequencies"];
+
+
+
+
+      console.log("json_other_people.length="+json_other_people.length);
+
+      console.log("json_people_frequency="+json_people_frequency);
+
+      for (var i=json_people_frequency.length-1; i>0; i--) {
+
+         var freq = json_people_frequency[i].toFixed(3);
+         var name = json_other_people[i];
+         var seperatedName = getSeperatedName(name);
+
+         var oldHtml = document.getElementById('results').innerHTML;
+
+         var newHtml = '<div' + ' id="result'+i+'" class="name">'+seperatedName+ " / " + freq +'</div>';
+         console.log("newHtml="+newHtml);
+         document.getElementById('results').innerHTML = oldHtml + newHtml;
+
+         var fontSize = parseInt(30+freq*100*1.5);
+         fontSize = fontSize + "px";
+         console.log(" i = "+i +" fontSize="+fontSize);
+         $("#result"+i).css("fontSize", fontSize);
+
+        }
+
+    }
+
+    function getSeperatedName(oldName) {
+      var newPersonName = "";
+      for(var i=0; i<oldName.length; i++) {
+        var character = oldName.charAt(i);
+
+        if (character == character.toUpperCase()) {
+           newPersonName += " ";
+        }
+         newPersonName += character;
+       }
+       return newPersonName;
+    }
+
+
+
+      // Ratio is between 0 and 1
+var changeColor = function(color, ratio, darker) {
+    // Trim trailing/leading whitespace
+    color = color.replace(/^\s*|\s*$/, '');
+
+    // Expand three-digit hex
+    color = color.replace(
+        /^#?([a-f0-9])([a-f0-9])([a-f0-9])$/i,
+        '#$1$1$2$2$3$3'
+    );
+
+    // Calculate ratio
+    var difference = Math.round(ratio * 256) * (darker ? -1 : 1),
+        // Determine if input is RGB(A)
+        rgb = color.match(new RegExp('^rgba?\\(\\s*' +
+            '(\\d|[1-9]\\d|1\\d{2}|2[0-4][0-9]|25[0-5])' +
+            '\\s*,\\s*' +
+            '(\\d|[1-9]\\d|1\\d{2}|2[0-4][0-9]|25[0-5])' +
+            '\\s*,\\s*' +
+            '(\\d|[1-9]\\d|1\\d{2}|2[0-4][0-9]|25[0-5])' +
+            '(?:\\s*,\\s*' +
+            '(0|1|0?\\.\\d+))?' +
+            '\\s*\\)$'
+        , 'i')),
+        alpha = !!rgb && rgb[4] != null ? rgb[4] : null,
+
+        // Convert hex to decimal
+        decimal = !!rgb? [rgb[1], rgb[2], rgb[3]] : color.replace(
+            /^#?([a-f0-9][a-f0-9])([a-f0-9][a-f0-9])([a-f0-9][a-f0-9])/i,
+            function() {
+                return parseInt(arguments[1], 16) + ',' +
+                    parseInt(arguments[2], 16) + ',' +
+                    parseInt(arguments[3], 16);
+            }
+        ).split(/,/),
+        returnValue;
+
+    // Return RGB(A)
+    return !!rgb ?
+        'rgb' + (alpha !== null ? 'a' : '') + '(' +
+            Math[darker ? 'max' : 'min'](
+                parseInt(decimal[0], 10) + difference, darker ? 0 : 255
+            ) + ', ' +
+            Math[darker ? 'max' : 'min'](
+                parseInt(decimal[1], 10) + difference, darker ? 0 : 255
+            ) + ', ' +
+            Math[darker ? 'max' : 'min'](
+                parseInt(decimal[2], 10) + difference, darker ? 0 : 255
+            ) +
+            (alpha !== null ? ', ' + alpha : '') +
+            ')' :
+        // Return hex
+        [
+            '#',
+            pad(Math[darker ? 'max' : 'min'](
+                parseInt(decimal[0], 10) + difference, darker ? 0 : 255
+            ).toString(16), 2),
+            pad(Math[darker ? 'max' : 'min'](
+                parseInt(decimal[1], 10) + difference, darker ? 0 : 255
+            ).toString(16), 2),
+            pad(Math[darker ? 'max' : 'min'](
+                parseInt(decimal[2], 10) + difference, darker ? 0 : 255
+            ).toString(16), 2)
+        ].join('');
+        };
+        var lighterColor = function(color, ratio) {
+            return changeColor(color, ratio, false);
+        };
+        var darkerColor = function(color, ratio) {
+            return changeColor(color, ratio, true);
+        };
+
+        // Use
+        var darker = darkerColor('rgba(80, 75, 52, .5)', .2);
+        var lighter = lighterColor('rgba(80, 75, 52, .5)', .2);
+
+    
+
+    </script>
+
+    <style type="text/css">
+
+      .name {
+        font-size: 40px;
+        line-height: 60px;
+        font-weight: 200;
+        color: #4285f4;
+
+      }
+
+      .container {
+        padding:5px;
+        width: 100%;
+        color: #FFFFFF;
+      }
+
+      img, video {
+        width:150px;
+        margin: 10px;
+      }
+
+      #first_name {
+        color: #FFFFFF;
+        border-bottom-color: #FFFFFF;
+        font-size: 30px;
+        line-height: 60px;
+        height: 60px;
+        font-family: 'Roboto';
+        font-weight: 200;
+      }
+      label {
+        color: #FFFFFF;
+      }
+
+    </style>
+
+   
+  </head>
+
+  <body>
+
+  <div id="wrap">
+
+    <header class="white_font z-depth-1">
+
+      <section>
+
+        <div id="header_title">
+
+          <div class="page-header-title">EastSide</div>
+              
+          <input id="first_name" type="text" placeholder="Search for places and things..">
+          <div class="right">
+            <a onclick="getJsonFile()" class="btn-floating btn-large waves-effect waves-light red"><i class="mdi-action-search"></i> </a>
+          </div>
+        </div>
+
+      </section>
+    </header>
+   </div> 
+    
+
+    <div id="content">
+      <section>
+        <div id="results" class="main-text">  
+        </div>
+      </section>  
+    </div>
+
+
+  </body>
+</html>

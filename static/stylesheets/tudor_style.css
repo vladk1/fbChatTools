@@ -1,0 +1,58 @@
+body {
+  padding: 50px;
+  padding-top: 25px;
+  font-family: 'Ubuntu', sans-serif;
+  /*background-image: url("/images/dark-blackboard.png");*/
+  background-color: #333333;
+}
+
+a {
+  color: #00B7FF;
+}
+
+h1 {
+	font-size: 8em;
+	margin: 0;
+	margin-left: 100px;
+	color: #333333;
+	/*text-shadow: inset 10px 10px 5px #222222;*/
+	color: rgba(51,51,51, 0.8);
+  text-shadow: 10px 10px 5px #F3ECE2, 0 0 0 #222222, 10px 10px 5px #F3ECE2;
+}
+
+h2 {
+	text-align: center;
+	margin-right: 50px;
+}
+
+h3 {
+	font-size: 1.5em;
+	margin: 0;
+	margin-top: 30px;
+	margin-left: 100px;
+}
+
+strong {
+	color: #DD4814;
+}
+
+main {
+	height: 6in;
+	width: 100%;
+	background-color: #F3ECE2;
+	border-radius: 0px;
+	box-shadow: 10px 10px 5px #222222;
+}
+
+.content {
+	padding: 30px;
+}
+
+.next_button {
+	text-align: right;
+}
+
+.right {
+  float: right;
+  margin-right: 10px;
+}

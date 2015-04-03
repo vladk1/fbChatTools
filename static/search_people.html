@@ -1,0 +1,325 @@
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/static/stylesheets/material_design.css">
+<link rel="stylesheet" type="text/css" href="/static/stylesheets/material_font.css">
+<link rel="stylesheet" type="text/css" href="/static/stylesheets/material_colour.css">
+
+
+
+<!-- Compiled and minified CSS -->
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/css/materialize.min.css">
+
+<!-- Compiled and minified JavaScript -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/js/materialize.min.js"></script>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/css/materialize.css"></link>
+
+<link href='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.95.3/font/roboto/Roboto-Light.ttf' rel='stylesheet' type='text/css'>
+
+ <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+  <link rel="stylesheet" href="static/stylesheets/cal-heatmap.css" />
+  <script type="text/javascript" src="static/js/cal-heatmap.min.js"></script>
+  <script type="text/javascript" src="static/js/moment.min.js"></script>
+
+  <script type="text/javascript" src="http://www.ryanepp.com/assets/balanced_gallery-820d548f4d9871fb92b9695fc387de7b.js"></script>
+
+
+
+    <script type="text/javascript">
+
+      var TOTAL_NUM_RESULTS = 50;
+
+      function getJsonFile() {
+        $('#image-search-results, #video-search-results, #cal-heatmap, #example-g').empty();
+
+        var queryValue = document.getElementById('first_name').value;
+
+        var http = new XMLHttpRequest();
+        var url = "search_people";
+        var params = "keyword="+queryValue;
+        http.open("POST", url, true);
+
+        //Send the proper header information along with the request
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        http.setRequestHeader("Content-length", params.length);
+        http.setRequestHeader("Connection", "close");
+
+        http.onreadystatechange = function() {//Call a function when the state changes.
+            if(http.readyState == 4 && http.status == 200) {
+
+                populateSearchResults(http.responseText);
+            }
+        }
+        http.send(params);
+    }
+
+
+    function populateSearchResults(jsonString) {
+      var json = JSON.parse(jsonString);
+      var json_user_name = json["user_name"];
+      var json_other_people = json["other_people"];
+      var currentFriend = json_other_people[0];
+
+      $(".page-header-title").text("EastSide with "+currentFriend);
+    
+
+      var json_paths = json["paths"];
+      var user_json_path = json_paths[0];
+      console.log("user_json_path="+user_json_path);
+      var splitName = user_json_path.split("jsons/");
+      var splitTfidf = splitName[1].split("Tfidf");
+
+      var calendarPath = "http://127.0.0.1:5000/src/files/datef/jsons/" + splitTfidf[0] + "DateF.json";
+      console.log("calendarPath="+calendarPath);
+      updateCalendar(calendarPath);
+
+
+      var wordsArray = new Array();
+
+      $.getJSON(user_json_path, function(json1) { 
+            var json = json1["words"];
+            var counter = 0;
+            while (counter < TOTAL_NUM_RESULTS) {
+              var word_json = json[counter];
+
+              console.log("word="+word_json["word"]+" ratio="+word_json["ratio"]);
+
+              wordsArray.push(word_json["word"]);
+
+              var changeOptsToCat = word_json["word"];
+              var opts = "client_id=aecd85f698b0c713d43a&client_secret=5a5f84c79752434a64a36851fc1c9461811b401a&query="+ changeOptsToCat+"&page=1&per_page=1&safe=true";
+
+              search(opts, 'image');
+              search(opts, 'video');
+              counter++;
+            }
+
+           var headerFooterString = "";
+            for (var i = 0; i<wordsArray.length; i++) {
+                var string = wordsArray[i] + " / ";
+                console.log("magicmagicstring="+string);
+                headerFooterString += string;
+            }
+            console.log("magic string="+headerFooterString);
+            $("#header_words").text(headerFooterString);
+
+      });
+      
+    }
+
+      // Create image wrapper component
+      function createImageComponent(image) {
+        var thumbnail = $('<img style="float: left;">');
+        $(thumbnail).attr('src', image.assets.preview.url);
+        return thumbnail;
+      }
+      // Create video wrapper component
+      function createVideoComponent(video) {
+        var preview = $('<video style="float: left;">');
+      
+        $(preview)
+          .attr('src', video.assets.thumb_mp4.url)
+          .attr('controls', true)
+          .attr('autoplay', true);
+
+        return preview;
+      }
+      // Search media by type
+      function search(opts, media_type) {
+         console.log("opts in search: "+opts);
+        var $container = $('#' + 'image-search-results');
+        var createComponentFunc = media_type === 'image'
+          ? createImageComponent
+          : createVideoComponent;
+        // Get Client ID and Client Secret for use in the Authorization header
+      
+        var clientId = "aecd85f698b0c713d43a";
+        var clientSecret = "5a5f84c79752434a64a36851fc1c9461811b401a";
+
+
+        var jqxhr = $.ajax({
+          url: 'https://api.shutterstock.com/v2/' + media_type + 's/search',
+          data: opts,
+          headers: {
+            // Base 64 encode 'client_id:client_secret'
+            Authorization: 'Basic ' + window.btoa(clientId + ':' + clientSecret)
+          }
+        })
+        .done(function(data) {
+          if (data.total_count === 0) {
+             console.log("No results for image search");
+            return;
+          }
+          $.each(data.data, function(i, item) {
+            if (i<3) {
+              var component = createComponentFunc(item);
+              $container.append(component);
+            }
+            balancedDiv();
+            
+          });
+        })
+        .fail(function(xhr, status, err) {
+          // console.log('Failed to retrieve ' + media_type + ' search results:\n' + JSON.stringify(xhr.responseJSON, null, 2));
+        });
+        return jqxhr;
+      }
+
+      function toCats(opts) {
+        
+        var res = opts.split("query=");
+        var queryEnd = res[1];
+        var newRes = queryEnd.split("&");
+        var newQuery = "query=cat";
+        for (var i=1; i<newRes.length; i++) {
+          newQuery += '&';
+          newQuery += newRes[i];
+        }
+        var output = res[0] + newQuery;
+        return output;
+      }
+
+    </script>
+
+    
+    <style type="text/css">
+
+      .container {
+        padding:5px;
+        width: 100%;
+      }
+
+      img, video {
+        width:200px;
+        margin: 10px;
+      }
+
+      #first_name {
+        color: #FFFFFF;
+        border-bottom-color: #FFFFFF;
+        font-size: 30px;
+        line-height: 60px;
+        height: 60px;
+        font-family: 'Roboto';
+        font-weight: 200;
+      }
+      label {
+        color: #FFFFFF;
+      }
+
+    </style>
+
+   
+  </head>
+
+  <body>
+
+  <div id="wrap">
+
+    <header class="white_font z-depth-1">
+
+      <section>
+
+        <div id="header_title">
+
+          <div class="page-header-title">EastSide</div>
+              
+          <input id="first_name" type="text" placeholder="Search for people..">
+          <div class="right">
+            <a onclick="getJsonFile()" class="btn-floating btn-large waves-effect waves-light red"><i class="mdi-action-search"></i> </a>
+          </div>
+        </div>
+
+        <div id="header_words">
+          
+        </div>
+ 
+        
+      </section>
+    </header>
+   </div> 
+
+    <div id="cal-heatmap"></div>
+    <div>
+        <div id="example-g"></div>
+        <p></p>
+        <style>
+            #example-g {
+              width:100%;
+              padding: 25px;
+              padding-top: 35px;
+            }
+            #example-g .graph-label {
+                font-weight: bold;
+                font-size: 18px;
+            }
+
+            #example-g .subdomain-text {
+                fill: #fff;
+                opacity: 0;
+            }
+
+            #example-g g:hover .subdomain-text {
+                opacity: 1;
+            }
+        </style>
+    
+        <script type="text/javascript">
+
+          function updateCalendar(filePath) {
+             var cal = new CalHeatMap();
+             console.log("calendar path ="+filePath);
+
+             var dt = new Date();
+             dt.setMonth(dt.getMonth() - 6);
+            
+            cal.init({
+                itemSelector: "#example-g",
+                domain: "month",
+                subDomain: "x_day",
+                data: filePath,
+                start: dt,
+                end: Date.now(),
+                cellSize: 20,
+                cellPadding: 5,
+                domainGutter: 20,
+                range: 6,
+                domainDynamicDimension: false,
+                previousSelector: "#example-g-PreviousDomain-selector",
+                nextSelector: "#example-g-NextDomain-selector",
+                domainLabelFormat: function(date) {
+                    moment.lang("en");
+                    return moment(date).format("MMMM").toUpperCase();
+                },
+                subDomainTextFormat: "%d",
+                legend: [20, 40, 60, 80]
+            });
+          }
+
+        </script>
+    </div>
+
+
+    <div class="container">
+      <div class="media">
+        <div id="image-search-results"></div>
+      </div>
+      <div class="media">
+        <div id="video-search-results"></div>
+      </div>
+    </div>
+
+
+    <div id="content">
+      <section>
+        <div id="results" class="main-text">  
+        </div>
+      </section>  
+    </div>
+
+
+  </body>
+</html>

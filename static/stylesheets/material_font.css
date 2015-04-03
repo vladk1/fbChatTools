@@ -1,0 +1,137 @@
+	.page-header-title {
+		font-family: 'Roboto';
+		color: #fff;
+		font-size: 56px;
+		font-weight: 400;
+		line-height: 1.5;
+		margin: 15px auto;
+		overflow: hidden;
+		font-weight: 100;
+		/*width: 1160px;*/
+		white-space: nowrap;
+
+		display: inline-block;
+        width: calc(100% / 1.5);
+        text-align: top;
+	}
+
+	.page-header-sub-title {
+		color: #fff;
+		font-size: 36px;
+		font-weight: 400;
+		line-height: 1.5;
+		margin: 0 auto;
+		overflow: hidden;
+		/*width: 1160px;*/
+		white-space: nowrap;
+	}
+
+	.main-text-header {
+		font-size: 30px;
+		line-height: 32px;
+		/*color: #1976D2;*/
+		color: #1976D2;
+		padding-bottom: 20px;
+		padding-top: 10px;
+	}
+
+	.main-text-question{
+		font-size: 20px;
+		line-height: 25px;
+		color: #212121;
+	}
+
+	.main-text {
+		font-size: 20px;
+		line-height: 32px;
+		color: #212121;
+		padding-right: 40px;
+		padding-left: 40px;
+	}
+
+	paper-radio-button {
+		color: #727272;
+	}
+
+	.footer-header-right {
+		/*font-family: 'Roboto';
+		line-height: 32px;
+		font-size: 15px;
+		color: #ececec;*/
+		margin-left: 30px;
+		/*text-align: center;	*/
+	}
+	.footer-header-left {
+		/*line-height: 32px;
+		font-family: 'Roboto';
+		font-size: 15px;
+		color: #ececec;*/
+		margin-right: 30px;
+		/*text-align: center;	
+		white-space: nowrap;*/
+	}
+
+
+	.footer-text {
+		font-size: 25px;
+		line-height: 50px;
+		display: block;
+		text-align: center;
+		white-space: nowrap;
+		color: #FFFFFF;
+	}
+
+	.highlight {
+		color: #536DFE;
+		 font-weight: bold;
+	}
+
+	.bad_highlight {
+		color: #ff4d4d;
+		 font-weight: bold;
+	}
+
+	.text-comment {
+		display:block;
+		font-size: 15px;
+		line-height: 15px;
+		/*color: #1976D2;*/
+		color: #1976D2;
+		
+		
+		width: calc(100%/2);
+		margin-left: auto;
+    	margin-right: auto;
+    	margin-top: 20px;
+    	padding-left: 100px;
+	}
+
+
+	#first_name::-webkit-input-placeholder {
+	    color:    #f2f2f2;
+	}
+
+	::-webkit-input-placeholder { /* WebKit browsers */
+	    color:    #f2f2f2;
+	}
+	:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+	   color:    #f2f2f2;
+	   opacity:  1;
+	}
+	::-moz-placeholder { /* Mozilla Firefox 19+ */
+	   color:    #f2f2f2;
+	   opacity:  1;
+	}
+	:-ms-input-placeholder { /* Internet Explorer 10+ */
+	   color:    #f2f2f2;
+	}
+
+	#header_words {
+		font-size: 20px;
+		font-weight: 300;
+		color: #ffd6d6;
+	}
+
+
+
+
