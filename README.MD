@@ -7,8 +7,11 @@
 
 ### in case of problems
 > virtualenv venv --distribute
+
 > . venv/bin/activate
+
 > pip install Flask
+
 > python server.py
 
 you might need to install:
@@ -52,4 +55,4 @@ special thanks to [nicola](https://github.com/nicola) [martol01](https://github.
 
 in case you want to change messages parcer, go to:
 https://github.com/vladk1/fbChatPersStats
-make changes and upload new jar (fbChat.jar) here
+make changes and upload new jar (fbchat.jar) here
